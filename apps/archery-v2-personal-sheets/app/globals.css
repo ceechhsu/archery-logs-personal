@@ -1474,13 +1474,16 @@ code {
 
   .shots-grid.inline-scores {
     grid-column: 1 / span 4;
-    flex-wrap: wrap;
-    gap: 0.15rem;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    column-gap: 0.2rem;
+    row-gap: 0.35rem;
   }
 
   .shot-input {
     gap: 0.1rem;
     justify-items: center;
+    min-width: 0;
   }
 
   .shot-input span {
@@ -1495,7 +1498,7 @@ code {
   }
 
   .shot-wheel-trigger {
-    width: 40px;
+    width: min(100%, 40px);
     height: 31px;
     font-size: 0.82rem;
     border-radius: 0.5rem;
