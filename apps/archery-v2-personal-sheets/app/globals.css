@@ -867,7 +867,7 @@ textarea {
   -webkit-appearance: none;
   background: transparent;
   font: inherit;
-  font-size: 1.1rem;
+  font-size: 0.88rem;
   line-height: 1;
   font-weight: 700;
   color: var(--ink-1);
