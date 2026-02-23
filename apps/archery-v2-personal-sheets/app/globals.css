@@ -826,6 +826,7 @@ textarea {
   z-index: 1;
   width: min(360px, calc(100% - 1rem));
   --wheel-text-size: 1.12rem;
+  --wheel-value-y-offset: -3px;
   border-radius: 1rem;
   background: #fff;
   border: 1px solid var(--line);
@@ -884,7 +885,7 @@ textarea {
   font-size: var(--wheel-text-size) !important;
   font-weight: 700;
   line-height: 1;
-  transform: none;
+  transform: translateY(var(--wheel-value-y-offset));
 }
 
 .wheel-item.active {
