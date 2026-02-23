@@ -879,13 +879,13 @@ textarea {
 
 .wheel-item-value {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  left: 50%;
+  top: 50%;
+  width: max-content;
   font-size: var(--wheel-text-size) !important;
   font-weight: 700;
   line-height: 1;
-  transform: translateY(var(--wheel-value-y-offset));
+  transform: translate(-50%, calc(-50% + var(--wheel-value-y-offset)));
 }
 
 .wheel-item.active {
