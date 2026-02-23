@@ -1449,8 +1449,8 @@ code {
     min-width: 0;
     width: 100%;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.45rem;
-    padding: 0.65rem;
+    gap: 0.35rem;
+    padding: 0.5rem;
   }
 
   .end-card h3 {
@@ -1475,29 +1475,30 @@ code {
   .shots-grid.inline-scores {
     grid-column: 1 / span 4;
     flex-wrap: wrap;
-    gap: 0.25rem;
+    gap: 0.15rem;
   }
 
   .shot-input {
-    grid-template-columns: 14px 1fr;
-    align-items: center;
-    gap: 0.25rem;
+    gap: 0.1rem;
+    justify-items: center;
   }
 
   .shot-input span {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
+    line-height: 1;
   }
 
   .shot-input input {
-    width: 46px;
+    width: 40px;
     padding: 0.4rem;
     text-align: center;
   }
 
   .shot-wheel-trigger {
-    width: 46px;
-    height: 34px;
-    font-size: 0.9rem;
+    width: 40px;
+    height: 31px;
+    font-size: 0.82rem;
+    border-radius: 0.5rem;
   }
 
   .end-total {
