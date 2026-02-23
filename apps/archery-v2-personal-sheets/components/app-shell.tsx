@@ -89,16 +89,6 @@ function uploadProgressLabel(progress: UploadProgress | null): string {
   return "Uploading...";
 }
 
-function normalizeProfileImageUrl(url: string | undefined): string {
-  if (!url) return "";
-  const trimmed = url.trim();
-  if (!trimmed) return "";
-  const secure = trimmed.startsWith("http://") ? `https://${trimmed.slice(7)}` : trimmed;
-  if (!secure.includes("googleusercontent.com")) return secure;
-  const base = secure.split("=")[0];
-  return `${base}=s96-c`;
-}
-
 export function AppShell() {
   const {
     authSession,
@@ -183,7 +173,14 @@ export function AppShell() {
     if (first) return first;
     return authSession?.user.email || "Archer";
   }, [authSession?.user.email, userProfile.firstName]);
-  const profileImageUrl = useMemo(() => normalizeProfileImageUrl(authSession?.user.picture), [authSession?.user.picture]);
+  const welcomeAvatarUrl = useMemo(() => {
+    if (!authSession?.user.sub) return "";
+    return `/api/auth/avatar?size=96&u=${encodeURIComponent(authSession.user.sub)}`;
+  }, [authSession?.user.sub]);
+  const profileAvatarUrl = useMemo(() => {
+    if (!authSession?.user.sub) return "";
+    return `/api/auth/avatar?size=256&u=${encodeURIComponent(authSession.user.sub)}`;
+  }, [authSession?.user.sub]);
   const calendarModel = useMemo(() => {
     const y = calendarMonth.year;
     const m = calendarMonth.month;
@@ -273,7 +270,7 @@ export function AppShell() {
 
   useEffect(() => {
     setProfileImageBroken(false);
-  }, [authSession?.user.sub, profileImageUrl]);
+  }, [authSession?.user.sub, profileAvatarUrl, welcomeAvatarUrl]);
 
   async function handlePhotoUpload(endId: string, file: File) {
     if (!meta || !activeSession) return;
@@ -477,10 +474,10 @@ export function AppShell() {
               onClick={() => leaveEditorIfUnsavedDraft("account")}
               title={`Open account for ${authSession.user.email}`}
             >
-              {profileImageUrl && !profileImageBroken ? (
+              {welcomeAvatarUrl && !profileImageBroken ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={profileImageUrl}
+                  src={welcomeAvatarUrl}
                   alt=""
                   className="welcome-avatar"
                   aria-hidden="true"
@@ -494,11 +491,6 @@ export function AppShell() {
               <span>Welcome {welcomeLabel}</span>
             </button>
           </p>
-        </div>
-        <div className="topbar-actions">
-          <button className="button" onClick={() => void signOut()}>
-            Log out
-          </button>
         </div>
       </header>
 
@@ -1176,10 +1168,10 @@ export function AppShell() {
           <div className="profile-layout">
             <section className="profile-photo-card">
               <div className="profile-photo-wrap">
-                {profileImageUrl && !profileImageBroken ? (
+                {profileAvatarUrl && !profileImageBroken ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={profileImageUrl}
+                    src={profileAvatarUrl}
                     alt="Profile"
                     className="profile-photo"
                     onError={() => setProfileImageBroken(true)}
@@ -1362,6 +1354,11 @@ export function AppShell() {
             Privacy default: this app does not keep a centralized log database. Your practice data lives in your
             personal Google Sheet. Profile settings are stored in this browser for now.
           </p>
+          <div className="stack-row">
+            <button className="button" onClick={() => void signOut()}>
+              Log out
+            </button>
+          </div>
         </section>
       ) : null}
     </main>
