@@ -860,8 +860,8 @@ textarea {
 .wheel-item {
   width: 100%;
   height: 44px;
-  display: grid;
-  place-items: center;
+  position: relative;
+  display: block;
   padding: 0;
   border: 0;
   appearance: none;
@@ -877,11 +877,14 @@ textarea {
 }
 
 .wheel-item-value {
-  display: block;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
   font-size: var(--wheel-text-size) !important;
   font-weight: 700;
   line-height: 1;
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .wheel-item.active {
