@@ -89,6 +89,16 @@ function uploadProgressLabel(progress: UploadProgress | null): string {
   return "Uploading...";
 }
 
+function normalizeProfileImageUrl(url: string | undefined): string {
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  const secure = trimmed.startsWith("http://") ? `https://${trimmed.slice(7)}` : trimmed;
+  if (!secure.includes("googleusercontent.com")) return secure;
+  const base = secure.split("=")[0];
+  return `${base}=s96-c`;
+}
+
 export function AppShell() {
   const {
     authSession,
@@ -115,8 +125,9 @@ export function AppShell() {
   const [sessionPhotoProgress, setSessionPhotoProgress] = useState<UploadProgress | null>(null);
   const [isLocating, setIsLocating] = useState(false);
   const [locationNotice, setLocationNotice] = useState<{ type: "info" | "warn" | "error"; text: string } | null>(null);
-  const [profileNotice, setProfileNotice] = useState<{ type: "info" | "error"; text: string } | null>(null);
+  const [profileNotice, setProfileNotice] = useState<{ type: "info"; text: string } | null>(null);
   const [profileDraft, setProfileDraft] = useState<UserProfile>(userProfile);
+  const [profileImageBroken, setProfileImageBroken] = useState(false);
   const [sessionDistanceDraft, setSessionDistanceDraft] = useState("");
   const [distanceReminder, setDistanceReminder] = useState(false);
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>(null);
@@ -172,6 +183,7 @@ export function AppShell() {
     if (first) return first;
     return authSession?.user.email || "Archer";
   }, [authSession?.user.email, userProfile.firstName]);
+  const profileImageUrl = useMemo(() => normalizeProfileImageUrl(authSession?.user.picture), [authSession?.user.picture]);
   const calendarModel = useMemo(() => {
     const y = calendarMonth.year;
     const m = calendarMonth.month;
@@ -253,8 +265,15 @@ export function AppShell() {
   }, [sessionHasDistance]);
 
   useEffect(() => {
-    setProfileDraft(userProfile);
-  }, [userProfile]);
+    setProfileDraft((current) => ({
+      ...userProfile,
+      profilePhotoDataUrl: authSession?.user.picture || current.profilePhotoDataUrl || ""
+    }));
+  }, [authSession?.user.picture, userProfile]);
+
+  useEffect(() => {
+    setProfileImageBroken(false);
+  }, [authSession?.user.sub, profileImageUrl]);
 
   async function handlePhotoUpload(endId: string, file: File) {
     if (!meta || !activeSession) return;
@@ -373,30 +392,10 @@ export function AppShell() {
     );
   }
 
-  async function handleProfilePhotoChange(file: File) {
-    if (!file.type.startsWith("image/")) {
-      setProfileNotice({ type: "error", text: "Please choose an image file for your profile photo." });
-      return;
-    }
-    if (file.size > 1_500_000) {
-      setProfileNotice({ type: "error", text: "Please choose a photo smaller than 1.5MB." });
-      return;
-    }
-
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = () => reject(new Error("Could not read image file"));
-      reader.readAsDataURL(file);
-    });
-
-    setProfileDraft((current) => ({ ...current, profilePhotoDataUrl: dataUrl }));
-    setProfileNotice({ type: "info", text: "Profile photo updated." });
-  }
-
   function handleSaveProfile() {
     const normalizedDraft: UserProfile = {
       ...profileDraft,
+      profilePhotoDataUrl: authSession?.user.picture || "",
       username: profileDraft.username.trim(),
       firstName: profileDraft.firstName.trim(),
       lastName: profileDraft.lastName.trim(),
@@ -473,13 +472,26 @@ export function AppShell() {
             </button>
           </h1>
           <p className="welcome-row">
-            Welcome{" "}
             <button
               className="welcome-link"
               onClick={() => leaveEditorIfUnsavedDraft("account")}
               title={`Open account for ${authSession.user.email}`}
             >
-              {welcomeLabel}
+              {profileImageUrl && !profileImageBroken ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profileImageUrl}
+                  alt=""
+                  className="welcome-avatar"
+                  aria-hidden="true"
+                  onError={() => setProfileImageBroken(true)}
+                />
+              ) : (
+                <span className="welcome-avatar-fallback" aria-hidden="true">
+                  {(userProfile.firstName[0] || authSession.user.name[0] || "U").toUpperCase()}
+                </span>
+              )}
+              <span>Welcome {welcomeLabel}</span>
             </button>
           </p>
         </div>
@@ -1164,44 +1176,21 @@ export function AppShell() {
           <div className="profile-layout">
             <section className="profile-photo-card">
               <div className="profile-photo-wrap">
-                {profileDraft.profilePhotoDataUrl ? (
+                {profileImageUrl && !profileImageBroken ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={profileDraft.profilePhotoDataUrl} alt="Profile" className="profile-photo" />
+                  <img
+                    src={profileImageUrl}
+                    alt="Profile"
+                    className="profile-photo"
+                    onError={() => setProfileImageBroken(true)}
+                  />
                 ) : (
                   <div className="profile-photo-fallback" aria-hidden="true">
                     {(profileDraft.firstName[0] || authSession.user.name[0] || "U").toUpperCase()}
                   </div>
                 )}
               </div>
-              <div className="profile-photo-actions">
-                <input
-                  id="profile-photo-upload"
-                  className="sr-only"
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    void handleProfilePhotoChange(file).catch((error) => {
-                      setProfileNotice({
-                        type: "error",
-                        text: error instanceof Error ? error.message : "Unable to update profile photo"
-                      });
-                    });
-                    event.currentTarget.value = "";
-                  }}
-                />
-                <label className="button" htmlFor="profile-photo-upload">Upload Photo</label>
-                <button
-                  className="button"
-                  onClick={() => {
-                    setProfileDraft((profile) => ({ ...profile, profilePhotoDataUrl: "" }));
-                    setProfileNotice({ type: "info", text: "Profile photo removed." });
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
+              <p className="helper-text">Using your Google profile image.</p>
               {profileNotice ? (
                 <p className={`profile-notice ${profileNotice.type}`}>{profileNotice.text}</p>
               ) : null}

@@ -229,6 +229,31 @@ body {
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 0.18rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.welcome-avatar,
+.welcome-avatar-fallback {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid #d9c9b2;
+  flex-shrink: 0;
+}
+
+.welcome-avatar {
+  object-fit: cover;
+  background: #f7efe3;
+}
+
+.welcome-avatar-fallback {
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.74rem;
+  color: var(--accent);
+  background: radial-gradient(circle at 26% 20%, #fff3de 0%, #f4e4ce 70%);
 }
 
 .sync-pill {
