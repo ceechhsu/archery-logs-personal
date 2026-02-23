@@ -130,7 +130,7 @@ export function ShotWheelPicker({ value, label, disabled = false, onOpenAttempt,
                     setOpen(false);
                   }}
                 >
-                  {option}
+                  <span className="wheel-item-value">{option}</span>
                 </button>
               ))}
             </div>
