@@ -826,7 +826,7 @@ textarea {
   z-index: 1;
   width: min(360px, calc(100% - 1rem));
   --wheel-text-size: 1.12rem;
-  --wheel-value-y-offset: -3px;
+  --wheel-value-y-offset: -13px;
   border-radius: 1rem;
   background: #fff;
   border: 1px solid var(--line);
