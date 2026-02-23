@@ -23,6 +23,7 @@ export function ShotWheelPicker({ value, label, disabled = false, onOpenAttempt,
   const [open, setOpen] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const scrollDebounceRef = useRef<number | null>(null);
+  const lastHapticIndexRef = useRef<number>(0);
   const currentValue = value || "M";
 
   const currentIndex = useMemo(() => {
@@ -33,7 +34,22 @@ export function ShotWheelPicker({ value, label, disabled = false, onOpenAttempt,
   useEffect(() => {
     if (!open || !viewportRef.current) return;
     viewportRef.current.scrollTo({ top: currentIndex * ITEM_HEIGHT, behavior: "auto" });
+    lastHapticIndexRef.current = currentIndex;
   }, [open, currentIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollDebounceRef.current) {
+        window.clearTimeout(scrollDebounceRef.current);
+      }
+    };
+  }, []);
+
+  function triggerHaptic() {
+    if (typeof navigator === "undefined") return;
+    if (typeof navigator.vibrate !== "function") return;
+    navigator.vibrate(8);
+  }
 
   function commitByIndex(index: number) {
     const safeIndex = Math.max(0, Math.min(SHOT_OPTIONS.length - 1, index));
@@ -43,6 +59,12 @@ export function ShotWheelPicker({ value, label, disabled = false, onOpenAttempt,
 
   function handleScroll() {
     if (!viewportRef.current) return;
+    const index = Math.round(viewportRef.current.scrollTop / ITEM_HEIGHT);
+    if (index !== lastHapticIndexRef.current) {
+      lastHapticIndexRef.current = index;
+      triggerHaptic();
+    }
+
     if (scrollDebounceRef.current) {
       window.clearTimeout(scrollDebounceRef.current);
     }
@@ -104,6 +126,7 @@ export function ShotWheelPicker({ value, label, disabled = false, onOpenAttempt,
                     if (!viewportRef.current) return;
                     viewportRef.current.scrollTo({ top: index * ITEM_HEIGHT, behavior: "smooth" });
                     commitByIndex(index);
+                    triggerHaptic();
                     setOpen(false);
                   }}
                 >
