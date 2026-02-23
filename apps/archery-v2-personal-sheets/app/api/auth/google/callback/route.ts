@@ -8,17 +8,17 @@ import {
 } from "@/lib/server/auth";
 
 export async function GET(request: NextRequest) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get("code");
-  const state = url.searchParams.get("state");
-  const expectedState = await readOauthStateCookie();
-
-  if (!code || !state || !expectedState || state !== expectedState) {
-    await clearOauthStateCookie();
-    return NextResponse.redirect(new URL("/?authError=state_mismatch", request.url));
-  }
-
   try {
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+    const expectedState = await readOauthStateCookie();
+
+    if (!code || !state || !expectedState || state !== expectedState) {
+      await clearOauthStateCookie();
+      return NextResponse.redirect(new URL("/?authError=state_mismatch", request.url));
+    }
+
     const tokenResponse = await exchangeCodeForTokens(code);
     const user = await fetchGoogleUserInfo(tokenResponse.access_token);
 
@@ -31,7 +31,8 @@ export async function GET(request: NextRequest) {
     await clearOauthStateCookie();
 
     return NextResponse.redirect(new URL("/", request.url));
-  } catch {
+  } catch (error) {
+    console.error("OAuth callback failed", error);
     await clearOauthStateCookie();
     return NextResponse.redirect(new URL("/?authError=oauth_failed", request.url));
   }
