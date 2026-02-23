@@ -10,8 +10,8 @@ import { useArcheryApp } from "@/lib/use-archery-app";
 import { reverseGeocode, uploadEndPhoto, type UploadProgress } from "@/lib/client-api";
 import { shopProducts } from "@/lib/shop-products";
 
-type Tab = "editor" | "shop" | "analytics" | "account";
-type ViewMode = "dashboard" | Tab;
+type Tab = "editor" | "shop" | "analytics" | "duel";
+type ViewMode = "dashboard" | "account" | Tab;
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -501,7 +501,7 @@ export function AppShell() {
           ["editor", "New Session"],
           ["shop", "Shop"],
           ["analytics", "Analytics"],
-          ["account", "Account"]
+          ["duel", "1-vs-1"]
         ] as Array<[Tab, string]>).map(([value, label]) => (
           <button
             key={value}
@@ -1156,6 +1156,14 @@ export function AppShell() {
               </section>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {viewMode === "duel" ? (
+        <section className="panel">
+          <h2>1-vs-1</h2>
+          <p>This mode is under construction.</p>
+          <p className="helper-text">We are building head-to-head scoring and challenge flow for live matchups.</p>
         </section>
       ) : null}
 
